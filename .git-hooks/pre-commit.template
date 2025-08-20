@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Laravel Pint pre-commit hook
+echo "Running Laravel Pint..."
+
+# Try Docker first, then fallback to local
+if [ -f "docker-compose.yml" ] && command -v docker >/dev/null 2>&1 && docker compose ps {{SERVICE_NAME}} | grep -q "Up"; then
+    echo "Using Docker Pint..."
+    docker compose run --rm -T {{SERVICE_NAME}} ./vendor/bin/pint --dirty > /dev/null 2>&1
+elif [ -f "vendor/bin/pint" ] && command -v php >/dev/null 2>&1; then
+    echo "Docker not available, using local Pint..."
+    ./vendor/bin/pint --dirty > /dev/null 2>&1
+else
+    echo "⚠️  Neither Docker nor local PHP available. Skipping code formatting."
+    echo "💡 Tip: Either start Docker or install PHP locally for code formatting."
+    exit 0
+fi
+
+# Check if any files were modified by Pint
+if ! git diff --quiet --exit-code; then
+    echo "✅ Code formatted. Please add changes and commit again."
+    echo "Run: git add . && git commit"
+    exit 1
+fi
+
+echo "✅ Code formatting looks good!"
+exit 0

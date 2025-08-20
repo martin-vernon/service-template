@@ -1,0 +1,135 @@
+# {{SERVICE_NAME_TITLE}} Service
+
+A Laravel 12 microservice for {{SERVICE_DESCRIPTION}}.
+
+## Features
+
+- Laravel 12 framework
+- Docker containerization
+- PostgreSQL database
+- Laravel Pint code formatting
+- PHPUnit testing
+- VS Code development environment
+
+## Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- PHP 8.2+ (for local development)
+- Composer
+
+### Setup
+
+1. **Clone and setup the service:**
+   ```bash
+   # This should be done automatically by the setup script
+   composer install
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+2. **Start Docker services:**
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Run migrations:**
+   ```bash
+   docker compose exec {{SERVICE_NAME}} php artisan migrate
+   ```
+
+### Development
+
+#### Code Formatting
+```bash
+# Format code
+composer format
+
+# Check formatting
+composer format-check
+
+# Show what would be formatted
+composer format-diff
+```
+
+#### Testing
+```bash
+# Run tests
+composer test
+
+# Run with Docker
+docker compose exec {{SERVICE_NAME}} php artisan test
+```
+
+#### Database
+```bash
+# Run migrations
+docker compose exec {{SERVICE_NAME}} php artisan migrate
+
+# Seed database  
+docker compose exec {{SERVICE_NAME}} php artisan db:seed
+
+# Reset database
+docker compose exec {{SERVICE_NAME}} php artisan migrate:fresh --seed
+```
+
+## Architecture
+
+### Directory Structure
+```
+{{SERVICE_NAME}}-service/
+├── app/
+│   ├── Http/           # Controllers, middleware, requests
+│   ├── Models/         # Eloquent models
+│   ├── Services/       # Business logic services
+│   └── ...
+├── config/             # Configuration files
+├── database/           # Migrations, seeders, factories
+├── docker/             # Docker configuration
+├── routes/             # Route definitions
+└── tests/              # PHPUnit tests
+```
+
+### Key Components
+
+- **Controllers**: Handle HTTP requests
+- **Models**: Database entities
+- **Services**: Business logic layer
+- **Migrations**: Database schema management
+
+## Deployment
+
+### Environment Variables
+
+Key environment variables:
+- `APP_ENV`: Application environment
+- `DB_*`: Database configuration
+- `{{SERVICE_NAME_UPPER}}_*`: Service-specific variables
+
+### Docker
+
+The service runs in Docker with:
+- **{{SERVICE_NAME}}-nginx**: Nginx web server (port {{NGINX_PORT}})
+- **{{SERVICE_NAME}}**: PHP-FPM application
+- **{{SERVICE_NAME}}-postgres**: PostgreSQL database (port {{POSTGRES_PORT}})
+
+## API Documentation
+
+// TODO: Add API documentation
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Ensure tests pass: `composer test`
+5. Ensure code is formatted: `composer format-check`
+6. Submit a pull request
+
+### Code Standards
+
+- Follow PSR-12 coding standards
+- Use Laravel Pint for formatting
+- Write unit and feature tests
+- Follow conventional commit messages

@@ -1,0 +1,71 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "simplified_null_return": true,
+        "braces": {
+            "allow_single_line_closure": true
+        },
+        "new_with_braces": true,
+        "method_argument_space": {
+            "on_multiline": "ensure_fully_multiline"
+        },
+        "binary_operator_spaces": {
+            "operators": {
+                "=>": "align",
+                "=": "align"
+            }
+        },
+        "blank_line_before_statement": {
+            "statements": ["return"]
+        },
+        "cast_spaces": true,
+        "class_attributes_separation": {
+            "elements": {
+                "method": "one"
+            }
+        },
+        "declare_equal_normalize": true,
+        "function_typehint_space": true,
+        "lowercase_cast": true,
+        "lowercase_static_reference": true,
+        "magic_method_casing": true,
+        "magic_constant_casing": true,
+        "native_function_casing": true,
+        "no_alias_functions": true,
+        "no_extra_blank_lines": {
+            "tokens": ["extra", "throw", "use"]
+        },
+        "no_multiline_whitespace_around_double_arrow": true,
+        "no_short_bool_cast": true,
+        "no_unneeded_control_parentheses": true,
+        "no_unused_imports": true,
+        "normalize_index_brace": true,
+        "object_operator_without_whitespace": true,
+        "phpdoc_indent": true,
+        "phpdoc_inline_tag_normalizer": true,
+        "phpdoc_no_access": true,
+        "phpdoc_no_empty_return": true,
+        "phpdoc_no_package": true,
+        "phpdoc_scalar": true,
+        "phpdoc_separation": true,
+        "phpdoc_single_line_var_spacing": true,
+        "phpdoc_summary": true,
+        "phpdoc_to_comment": true,
+        "phpdoc_trim": true,
+        "phpdoc_types": true,
+        "phpdoc_var_without_name": true,
+        "return_type_declaration": true,
+        "short_scalar_cast": true,
+        "single_class_element_per_statement": true,
+        "single_quote": true,
+        "space_after_semicolon": {
+            "remove_in_empty_for_expressions": true
+        },
+        "standardize_not_equals": true,
+        "ternary_operator_spaces": true,
+        "trailing_comma_in_multiline": true,
+        "trim_array_spaces": true,
+        "unary_operator_spaces": true,
+        "whitespace_after_comma_in_array": true
+    }
+}
