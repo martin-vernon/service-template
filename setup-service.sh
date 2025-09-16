@@ -34,19 +34,21 @@ show_usage() {
     echo "Usage: $0 <service-name> [options]"
     echo ""
     echo "Options:"
-    echo "  -p, --nginx-port PORT    Nginx port (default: auto-assign)"
-    echo "  -d, --db-port PORT       PostgreSQL port (default: auto-assign)"
-    echo "  -h, --help              Show this help message"
+    echo "  -p, --nginx-port PORT         Nginx port (default: auto-assign)"
+    echo "  -d, --db-port PORT            PostgreSQL port (default: auto-assign)"
+    echo "  -t, --github-token TOKEN      GitHub OAuth token"
+    echo "  -h, --help                   Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 notification"
-    echo "  $0 payment-service --nginx-port 8085 --db-port 5436"
+    echo "  $0 notification --github-token ghp_xxxxxxxxxxxxxxxxxxxx"
+    echo "  $0 payment-service --nginx-port 8085 --db-port 5436 --github-token ghp_xxxxxxxxxxxxxxxxxxxx"
 }
 
 # Parse command line arguments
 SERVICE_NAME=""
 NGINX_PORT=""
 POSTGRES_PORT=""
+GITHUB_OAUTH_TOKEN=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -56,6 +58,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -d|--db-port)
             POSTGRES_PORT="$2"
+            shift 2
+            ;;
+        -t|--github-token)
+            GITHUB_OAUTH_TOKEN="$2"
             shift 2
             ;;
         -h|--help)
@@ -83,6 +89,13 @@ done
 # Validate service name
 if [ -z "$SERVICE_NAME" ]; then
     print_error "Service name is required"
+    show_usage
+    exit 1
+fi
+
+# Validate GitHub OAuth token
+if [ -z "$GITHUB_OAUTH_TOKEN" ]; then
+    print_error "GitHub OAuth token is required"
     show_usage
     exit 1
 fi
@@ -123,6 +136,7 @@ print_status "Service title: $SERVICE_NAME_TITLE"
 print_status "Target directory: $TARGET_DIR"
 print_status "Nginx port: $NGINX_PORT"
 print_status "PostgreSQL port: $POSTGRES_PORT"
+print_status "GitHub OAuth token: configured"
 
 # Check if target directory already exists
 if [ -d "$TARGET_DIR" ]; then
@@ -158,7 +172,7 @@ fi
 
 # Process .env.example
 if [ -f ".env.example.template" ]; then
-    sed "s/{{SERVICE_NAME}}/$SERVICE_NAME/g; s/{{SERVICE_NAME_TITLE}}/$SERVICE_NAME_TITLE/g; s/{{NGINX_PORT}}/$NGINX_PORT/g" .env.example.template > .env.example
+    sed "s/{{SERVICE_NAME}}/$SERVICE_NAME/g; s/{{SERVICE_NAME_TITLE}}/$SERVICE_NAME_TITLE/g; s/{{NGINX_PORT}}/$NGINX_PORT/g; s/{{GITHUB_OAUTH_TOKEN}}/$GITHUB_OAUTH_TOKEN/g" .env.example.template > .env.example
     rm .env.example.template
     print_success "Created .env.example"
 fi
