@@ -3,23 +3,70 @@
 # Laravel Pint pre-commit hook
 echo "Running Laravel Pint..."
 
+# Get list of staged PHP files
+staged_php_files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$')
+
+if [ -z "$staged_php_files" ]; then
+    echo "No PHP files staged for commit. Skipping Pint."
+    exit 0
+fi
+
+echo "Checking staged PHP files..."
+
 # Try Docker first, then fallback to local
-if [ -f "docker-compose.yml" ] && command -v docker >/dev/null 2>&1 && docker compose ps {{SERVICE_NAME}} | grep -q "Up"; then
+if [ -f "docker-compose.yml" ] && command -v docker >/dev/null 2>&1 && docker compose ps rbac | grep -q "Up"; then
     echo "Using Docker Pint..."
-    docker compose run --rm -T {{SERVICE_NAME}} ./vendor/bin/pint --dirty > /dev/null 2>&1
-elif [ -f "vendor/bin/pint" ] && command -v php >/dev/null 2>&1; then
-    echo "Docker not available, using local Pint..."
-    ./vendor/bin/pint --dirty > /dev/null 2>&1
+
+    echo "Running Docker Pint..."
+    # Use exec to run in existing container, only on staged files
+    echo "$staged_php_files" | xargs docker compose exec -T rbac ./vendor/bin/pint
+    exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+        echo "⚠️  Docker Pint failed. Falling back to local..."
+    else
+        # Docker succeeded, check if any staged files were modified
+        staged_files_modified=false
+        for file in $staged_php_files; do
+            if ! git diff --quiet --exit-code "$file"; then
+                staged_files_modified=true
+                break
+            fi
+        done
+
+        if [ "$staged_files_modified" = true ]; then
+            echo "✅ Code formatted. Please add the formatted files and commit again."
+            echo "Run: git add $staged_php_files && git commit"
+            exit 1
+        fi
+        echo "✅ Code formatting looks good!"
+        exit 0
+    fi
+
+fi
+
+# Fallback to local Pint
+if [ -f "vendor/bin/pint" ] && command -v php >/dev/null 2>&1; then
+    echo "Using local Pint..."
+    echo "$staged_php_files" | xargs ./vendor/bin/pint
 else
     echo "⚠️  Neither Docker nor local PHP available. Skipping code formatting."
     echo "💡 Tip: Either start Docker or install PHP locally for code formatting."
     exit 0
 fi
 
-# Check if any files were modified by Pint
-if ! git diff --quiet --exit-code; then
-    echo "✅ Code formatted. Please add changes and commit again."
-    echo "Run: git add . && git commit"
+# Check if any staged files were modified by Pint
+staged_files_modified=false
+for file in $staged_php_files; do
+    if ! git diff --quiet --exit-code "$file"; then
+        staged_files_modified=true
+        break
+    fi
+done
+
+if [ "$staged_files_modified" = true ]; then
+    echo "✅ Code formatted. Please add the formatted files and commit again."
+    echo "Run: git add $staged_php_files && git commit"
     exit 1
 fi
 
