@@ -234,16 +234,19 @@ cat > bootstrap/app.php << 'EOF'
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Mvernon\CommonPackage\App\Middleware\ValidateJwtMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
+        //web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        //commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'jwt.auth' => ValidateJwtMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
@@ -260,15 +263,17 @@ EOF
 
 # Create basic routes
 mkdir -p routes
-cat > routes/api.php << 'EOF'
+cat > routes/api.php << EOF
 <?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::prefix('$SERVICE_NAME')->group(function () {
+    Route::middleware('jwt.auth')->group(function () {
+
+    });
+});
 EOF
 
 cat > routes/web.php << 'EOF'
