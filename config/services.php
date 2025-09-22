@@ -35,4 +35,25 @@ return [
         ],
     ],
 
+    'auth' => [
+        'url' => env('AUTH_SERVICE_URL', 'http://auth-nginx'),
+        'timeout' => env('AUTH_TIMEOUT', 10),
+        'retries' => env('AUTH_RETRIES', 2),
+        'retry_delay' => env('AUTH_RETRY_DELAY', 100), // milliseconds
+    ],
+
+    'rbac' => [
+        'url' => env('RBAC_SERVICE_URL', 'http://rbac-nginx'),
+        'timeout' => env('RBAC_TIMEOUT', 10),
+        'retries' => env('RBAC_RETRIES', 2),
+        'retry_delay' => env('RBAC_RETRY_DELAY', 100), // milliseconds
+    ],
+
+    'security' => [
+        'url' => env('SECURITY_SERVICE_URL', 'http://security-nginx'),
+        'timeout' => env('SECURITY_TIMEOUT', 10),
+        'retries' => env('SECURITY_RETRIES', 2),
+        'retry_delay' => env('SECURITY_RETRY_DELAY', 100), // milliseconds
+    ],
+
 ];
