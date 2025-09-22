@@ -234,7 +234,7 @@ cat > bootstrap/app.php << 'EOF'
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Mvernon\CommonPackage\App\Middleware\ValidateJwtMiddleware;
+use Mvernon\CommonPackage\App\Middleware\AuthMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -245,7 +245,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'jwt.auth' => ValidateJwtMiddleware::class,
+            'auth.jwt' => AuthMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -270,7 +270,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('$SERVICE_NAME')->group(function () {
-    Route::middleware('jwt.auth')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
 
     });
 });
