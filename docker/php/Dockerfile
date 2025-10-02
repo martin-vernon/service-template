@@ -24,8 +24,9 @@ RUN apk add --no-cache \
     unzip \
     curl \
     icu-dev \
-    oniguruma-dev\
-    libxml2-dev
+    oniguruma-dev \
+    libxml2-dev \
+    supervisor
 
 # MacOS staff group's gid is 20, so is the dialout group in alpine linux. We're not using it, let's just remove it.
 RUN delgroup dialout
@@ -82,11 +83,14 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 COPY . .
 
 COPY ./docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY ./docker/php/worker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
+COPY ./docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/worker-entrypoint.sh
+
+# Create supervisor logs directory
+RUN mkdir -p /var/log/supervisor && chown -R laravel:laravel /var/log/supervisor
 
 # Ensure permissions (optional)
 RUN chown -R laravel:laravel /var/www/html/storage /var/www/html/bootstrap/cache
 
 USER laravel
-
-ENTRYPOINT ["entrypoint.sh"]

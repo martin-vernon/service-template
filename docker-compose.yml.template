@@ -60,6 +60,29 @@ services:
     networks:
       - shared
       - {{SERVICE_NAME}}-internal-network
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+
+#  {{SERVICE_NAME}}-worker:
+#    image: audit-service:latest
+#    volumes:
+#      - ./:/var/www/html:delegated
+#    environment:
+#      - SERVICE_NAME=${APP_NAME}
+#      - APP_ENV=${APP_ENV}
+#      - QUEUE_CONNECTION=${QUEUE_CONNECTION}
+#      - RABBITMQ_HOST=${RABBITMQ_HOST}
+#      - RABBITMQ_PORT=${RABBITMQ_PORT}
+#      - RABBITMQ_USER=${RABBITMQ_USER}
+#      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+#      - WAIT_FOR_RABBITMQ=${WAIT_FOR_RABBITMQ}
+#    depends_on:
+#      - audit
+#      - audit-postgres
+#    #   - redis
+#    networks:
+#      - shared
+#      - audit-internal-network
+#    entrypoint: ["/usr/local/bin/worker-entrypoint.sh"]
 
   {{SERVICE_NAME}}-postgres:
     image: postgres:17.4-alpine

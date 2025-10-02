@@ -58,6 +58,7 @@ show_help() {
     echo "  composer-install     Run composer install in all services"
     echo "  composer-update      Run composer update in all services"
     echo "  clear-cache         Clear Laravel cache in all services"
+    echo "  update-github-token <token>  Update GITHUB_OAUTH_TOKEN in all services' .env files and clear config cache in running containers"
     echo "  status              Show git status for all services"
     echo "  pull               Pull latest changes for all services"
     echo "  list-services       List all available services"
@@ -285,6 +286,98 @@ check_deps() {
     done
 }
 
+# Function to update GitHub OAuth token across all services and clear config cache in running containers
+update_github_token() {
+    local NEW_TOKEN="$1"
+
+    if [ -z "$NEW_TOKEN" ]; then
+        print_error "Usage: $0 update-github-token <new_token>"
+        exit 1
+    fi
+
+    print_header "=== Updating GITHUB_OAUTH_TOKEN Across All Services ==="
+    echo ""
+
+    for service in "${SERVICES[@]}"; do
+        if [ -d "$service" ]; then
+            print_status "Updating token in $service/.env..."
+            if [ -f "$service/.env" ]; then
+                # Update or insert the token line
+                if grep -q '^GITHUB_OAUTH_TOKEN=' "$service/.env"; then
+                    sed -i '' "s/^GITHUB_OAUTH_TOKEN=.*/GITHUB_OAUTH_TOKEN=$NEW_TOKEN/" "$service/.env"
+                else
+                    echo "GITHUB_OAUTH_TOKEN=$NEW_TOKEN" >> "$service/.env"
+                fi
+                print_success "✓ Updated $service/.env"
+            else
+                print_warning "⚠ $service/.env not found; skipping file update"
+            fi
+
+            # Also update docker-compose build arg if present in Dockerfile build args via .env (handled by env)
+
+            # If a container for this service is running, exec into it and clear config cache
+            # Determine main PHP container name from docker-compose service names
+            local container_name=""
+            case "$service" in
+                auth-service) container_name="auth" ;;
+                rbac-service) container_name="rbac" ;;
+                security-service) container_name="security" ;;
+                dealers-service) container_name="dealers" ;;
+                vehicle-service) container_name="vehicles" ;;
+                smr-service) container_name="smr" ;;
+                customers-service) container_name="customers" ;;
+                audit-service) container_name="audit" ;;
+                *) container_name="" ;;
+            esac
+
+            if [ -n "$container_name" ]; then
+                # Use Docker Compose labels to find running containers for this service
+                # 1) Try with project label (most precise)
+                local project_label="$service"
+                local containers
+                containers=$(docker ps -q \
+                    --filter "label=com.docker.compose.service=${container_name}" \
+                    --filter "label=com.docker.compose.project=${project_label}")
+
+                # 2) Fallback: any project, match by service label only
+                if [ -z "$containers" ]; then
+                    containers=$(docker ps -q --filter "label=com.docker.compose.service=${container_name}")
+                fi
+
+                # Also look for corresponding worker containers (service-name with -worker suffix)
+                local worker_service="${container_name}-worker"
+                local worker_containers
+                worker_containers=$(docker ps -q \
+                    --filter "label=com.docker.compose.service=${worker_service}" \
+                    --filter "label=com.docker.compose.project=${project_label}")
+                if [ -z "$worker_containers" ]; then
+                    worker_containers=$(docker ps -q --filter "label=com.docker.compose.service=${worker_service}")
+                fi
+
+                if [ -n "$containers$worker_containers" ]; then
+                    for cid in $containers $worker_containers; do
+                        [ -z "$cid" ] && continue
+                        print_status "Clearing config cache in container ${cid}..."
+                        docker exec -i "$cid" php artisan config:clear >/dev/null 2>&1 || true
+                        docker exec -i "$cid" php artisan config:cache >/dev/null 2>&1 || true
+                    done
+                    print_success "✓ Cleared and rebuilt config cache in running containers for '${container_name}' (and worker if present)"
+                else
+                    print_warning "⚠ No running containers found for '${container_name}' (or worker) — skipping cache clear"
+                fi
+            else
+                print_warning "⚠ No known container mapping for $service; skipping cache clear"
+            fi
+
+            echo ""
+        else
+            print_warning "⚠ Service directory $service not found, skipping..."
+        fi
+    done
+
+    print_success "All done. If some services run with build args, you may need to rebuild images to propagate the token into build-time context."
+}
+
 # Main script logic
 check_directory
 
@@ -312,6 +405,10 @@ case "${1:-help}" in
         ;;
     "check-deps")
         check_deps
+        ;;
+    "update-github-token")
+        shift || true
+        update_github_token "$1"
         ;;
     "help"|*)
         show_help
