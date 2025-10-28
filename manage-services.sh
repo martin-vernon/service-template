@@ -38,13 +38,15 @@ print_header() {
 # List of services
 SERVICES=(
     "audit-service"
-    "auth-service" 
-    "rbac-service"
-    "dealers-service"
-    "vehicle-service"
-    "smr-service"
+    "auth-service"
     "customers-service"
+    "dashboard-service"
+    "dealers-service"
+    "quote-service"
+    "rbac-service"
     "security-service"
+    "smr-service"
+    "vehicle-service"
 )
 
 # Function to show help
@@ -83,14 +85,14 @@ check_directory() {
 update_common_package() {
     print_header "=== Updating Common Package Across All Services ==="
     echo ""
-    
+
     declare -a successful_updates=()
     declare -a failed_updates=()
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ]; then
             print_status "Updating $service..."
-            
+
             if cd "$service"; then
                 if [ -f "composer.json" ] && grep -q "mvernon/common-package" composer.json; then
                     if composer update mvernon/common-package --no-interaction; then
@@ -113,19 +115,19 @@ update_common_package() {
             print_warning "⚠ Service directory $service not found, skipping..."
         fi
     done
-    
+
     # Print summary
     echo "============================================"
     print_status "UPDATE SUMMARY"
     echo "============================================"
-    
+
     if [ ${#successful_updates[@]} -gt 0 ]; then
         print_success "Successfully updated ${#successful_updates[@]} services:"
         for service in "${successful_updates[@]}"; do
             echo "  ✓ $service"
         done
     fi
-    
+
     if [ ${#failed_updates[@]} -gt 0 ]; then
         print_error "Failed to update ${#failed_updates[@]} services:"
         for service in "${failed_updates[@]}"; do
@@ -140,7 +142,7 @@ update_common_package() {
 composer_install() {
     print_header "=== Running Composer Install Across All Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ]; then
             print_status "Installing dependencies for $service..."
@@ -159,7 +161,7 @@ composer_install() {
 composer_update() {
     print_header "=== Running Composer Update Across All Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ]; then
             print_status "Updating dependencies for $service..."
@@ -178,7 +180,7 @@ composer_update() {
 clear_cache() {
     print_header "=== Clearing Laravel Cache Across All Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ]; then
             print_status "Clearing cache for $service..."
@@ -198,7 +200,7 @@ clear_cache() {
 git_status() {
     print_header "=== Git Status Across All Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}" "common-package"; do
         if [ -d "$service" ]; then
             print_status "Git status for $service:"
@@ -218,7 +220,7 @@ git_status() {
 git_pull() {
     print_header "=== Pulling Latest Changes Across All Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}" "common-package"; do
         if [ -d "$service" ]; then
             print_status "Pulling changes for $service..."
@@ -237,7 +239,7 @@ git_pull() {
 list_services() {
     print_header "=== Available Services ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ]; then
             print_success "✓ $service (exists)"
@@ -245,7 +247,7 @@ list_services() {
             print_warning "✗ $service (missing)"
         fi
     done
-    
+
     echo ""
     print_status "Common package:"
     if [ -d "common-package" ]; then
@@ -259,7 +261,7 @@ list_services() {
 check_deps() {
     print_header "=== Checking Common Package Dependency Versions ==="
     echo ""
-    
+
     for service in "${SERVICES[@]}"; do
         if [ -d "$service" ] && [ -f "$service/composer.json" ]; then
             print_status "Checking $service..."
@@ -267,7 +269,7 @@ check_deps() {
             if grep -q "mvernon/common-package" composer.json; then
                 version=$(grep "mvernon/common-package" composer.json | sed 's/.*: *"\([^"]*\)".*/\1/')
                 echo "  Current version: $version"
-                
+
                 # Check if vendor directory exists and show installed version
                 if [ -d "vendor/mvernon/common-package" ]; then
                     if [ -f "composer.lock" ]; then
@@ -388,7 +390,7 @@ case "${1:-help}" in
     "composer-install")
         composer_install
         ;;
-    "composer-update") 
+    "composer-update")
         composer_update
         ;;
     "clear-cache")

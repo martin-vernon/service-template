@@ -47,6 +47,7 @@ services:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
         - GITHUB_OAUTH_TOKEN=${GITHUB_OAUTH_TOKEN}
+    image: {{SERVICE_NAME}}-service:latest
     volumes:
       - ./:/var/www/html:delegated
     environment:
@@ -54,6 +55,14 @@ services:
       - APP_ENV=${APP_ENV}
       - DB_RUN_MIGRATIONS=${DB_RUN_MIGRATIONS}
       - DB_RESEED=${DB_RESEED}
+      - LOG_CHANNEL=${LOG_CHANNEL}
+      - LOG_LEVEL=${LOG_LEVEL}
+    labels:
+      - log.app:quote-service
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - {{SERVICE_NAME}}-postgres
     #   - redis
@@ -63,7 +72,7 @@ services:
     entrypoint: ["/usr/local/bin/entrypoint.sh"]
 
 #  {{SERVICE_NAME}}-worker:
-#    image: audit-service:latest
+#    image: {{SERVICE_NAME}}-service:latest
 #    volumes:
 #      - ./:/var/www/html:delegated
 #    environment:
@@ -75,13 +84,21 @@ services:
 #      - RABBITMQ_USER=${RABBITMQ_USER}
 #      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
 #      - WAIT_FOR_RABBITMQ=${WAIT_FOR_RABBITMQ}
+#      - LOG_CHANNEL=stderr
+#      - LOG_LEVEL=debug
+#    labels:
+#       - logs.app={{SERVICE_NAME}}-worker
+#    logging:
+#        options:
+#            max-size: "10m"
+#            max-file: "3"
 #    depends_on:
-#      - audit
-#      - audit-postgres
+#      - {{SERVICE_NAME}}
+#      - {{SERVICE_NAME}}-postgres
 #    #   - redis
 #    networks:
 #      - shared
-#      - audit-internal-network
+#      - {{SERVICE_NAME}}-internal-network
 #    entrypoint: ["/usr/local/bin/worker-entrypoint.sh"]
 
   {{SERVICE_NAME}}-postgres:
